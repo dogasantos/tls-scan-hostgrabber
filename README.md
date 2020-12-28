@@ -17,10 +17,10 @@ Place the tls-scan.json in the same directory as main.go / main binary file.
 # Install and Run
 
 `
-git clone github.com/dogasantos/tls-scan-hostgrabber
-cd tls-scan-hostgrabber
-go build main.go
-./main > output.txt
+git clone github.com/dogasantos/tls-scan-hostgrabber<br />
+cd tls-scan-hostgrabber<br />
+go build main.go<br />
+./main > output.txt<br />
 `
 
 The output.txt will contain all the hostnames and ip addressess found inside tls-scan.json certificate data.
