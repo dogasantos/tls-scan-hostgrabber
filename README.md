@@ -3,7 +3,7 @@ Parse tls-scan json output and fetch all hostnames and IPs from Subject, Subject
 
 # About TLS-SCAN
 
-tls-scan (https://github.com/prbinu/tls-scan) is a fantastic tool written by @prbinu that grabs the TLS certificate from a given host (or a list of hosts), parses and produces a ndjson file with all the information taken from the certificate.
+tls-scan (https://github.com/prbinu/tls-scan) is a fantastic tool written by @prbinu that grabs the TLS certificate from a given host (or a list of hosts), parses and produces a ndjson file with all details.
 
 # About tls-scan-hostgrabber
 
