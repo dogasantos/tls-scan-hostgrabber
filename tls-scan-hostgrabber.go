@@ -159,9 +159,10 @@ func main() {
 		fmt.Println("Cert Subject: ",jdata.CertificateChain[0].Subject) 
 		fmt.Println("Cert Issuer: ", jdata.CertificateChain[0].Issuer) 
 		fmt.Println("Cert SubjectCN: ", jdata.CertificateChain[0].SubjectCN) 
-		fmt.Println("Cert SubjectAltName: ", jdata.CertificateChain[0].SubjectAltName) 
+		
 		*/
-
+		fmt.Println("Cert SubjectAltName: ", jdata.CertificateChain[0].SubjectAltName) 
+		
 		hosts := ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
 		for _, v := range hosts {
 			hsl = append(hsl,v)
