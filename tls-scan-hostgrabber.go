@@ -151,16 +151,16 @@ func TokenizeHostString(data string) []string {
 			// Have valid tld
 			if strings.Contains(".", hoststring) { // we have a dot!
 				hostnameData,_ := ExtractTLDFromUrl(hoststring)
-				if checkIPAddressType(hostnameData) == 0{ // not an ip address
-
-					if hostnameData != nil { // we have a domain here...
-						if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
-							host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
-						} else { // we dont have a host part / subdomain, just a domain + tld
-							host = hostnameData.Domain + "." + hostnameData.Tld
-						}
+				if hostnameData != nil { // we have a domain here...
+					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
+						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+					} else { // we dont have a host part / subdomain, just a domain + tld
+						host = hostnameData.Domain + "." + hostnameData.Tld
+					}
+					if checkIPAddressType(host) == 0{ // not an ip address
 						hostSlice = append(hostSlice, host) // not an ipaddr
 					}
+				
 				}
 			}
 		}
@@ -180,16 +180,15 @@ func TokenizeHostString(data string) []string {
 			// Have valid tld
 			if strings.Contains(".", hoststring) { // we have a dot!
 				hostnameData,_ := ExtractTLDFromUrl(hoststring)
-				if checkIPAddressType(hostnameData) == 0{ // not an ip address
-					if hostnameData != nil { // we have a domain here...
-						if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
-							host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
-						} else { // we dont have a host part / subdomain, just a domain + tld
-							host = hostnameData.Domain + "." + hostnameData.Tld
-						}
-						hostSlice = append(hostSlice, host) // not an ipaddr
-						
+				if hostnameData != nil { // we have a domain here...
+					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
+						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+					} else { // we dont have a host part / subdomain, just a domain + tld
+						host = hostnameData.Domain + "." + hostnameData.Tld
 					}
+					if checkIPAddressType(host) == 0 { // not an ip address
+						hostSlice = append(hostSlice, host) // not an ipaddr
+					}					
 				}
 			}
 		}
@@ -248,13 +247,13 @@ func ExtractHostsFromCert(data string) []string{
 	for _, element := range splited {
 		if len(element) > 2 && strings.Contains(element, "."){
 			hostdata,_ := ExtractTLDFromUrl(element)
-			if checkIPAddressType(hostdata) == 0{
-				if hostdata != nil{
-					if len(hostdata.Subdomain) > 0 {
-						host = hostdata.Subdomain + "." + hostdata.Domain + "." + hostdata.Tld
-					} else {
-						host = hostdata.Domain + "." + hostdata.Tld
-					}
+			if hostdata != nil{
+				if len(hostdata.Subdomain) > 0 {
+					host = hostdata.Subdomain + "." + hostdata.Domain + "." + hostdata.Tld
+				} else {
+					host = hostdata.Domain + "." + hostdata.Tld
+				}
+				if checkIPAddressType(host) == 0 { // not an ip address
 					Slice = append(Slice, host)
 				}
 			}
