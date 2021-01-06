@@ -1,7 +1,8 @@
 package main
 
 import (
-    "fmt"
+	"fmt"
+	"net"
 	"os"
 	"bufio"
 	"encoding/json"
@@ -10,12 +11,6 @@ import (
 	"strings"
 	tld "github.com/jpillora/go-tld"
 )
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
 
 type CertChain struct {
 	Subject string 	`json:"Subject"`
@@ -38,6 +33,30 @@ type JsonStruct struct {
 	Port int `json:"Port"`
 	CertificateChain []CertChain `json:"CertificateChain"`
 }
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func checkIPAddressType(ip string) {
+    if net.ParseIP(ip) == nil {
+        // fmt.Printf("Invalid IP Address: %s\n", ip)
+        return 0
+    }
+    for i := 0; i < len(ip); i++ {
+        switch ip[i] {
+        case '.':
+            // fmt.Printf("Given IP Address %s is IPV4 type\n", ip)
+            return 4
+        case ':':
+            // fmt.Printf("Given IP Address %s is IPV6 type\n", ip)
+            return 6
+        }
+    }
+}
+
 
 func ExtractTLDFromUrl(url string) (*TldData, error){
 	var d TldData
@@ -130,13 +149,16 @@ func TokenizeHostString(data string) []string {
 			// Have valid tld
 			if strings.Contains(".", hoststring) { // we have a dot!
 				hostnameData,_ := ExtractTLDFromUrl(hoststring)
-				if hostnameData != nil { // we have a domain here...
-					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
-						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
-					} else { // we dont have a host part / subdomain, just a domain + tld
-						host = hostnameData.Domain + "." + hostnameData.Tld
+				if checkIPAddressType(hostnameData) == 0{ // not an ip address
+
+					if hostnameData != nil { // we have a domain here...
+						if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
+							host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+						} else { // we dont have a host part / subdomain, just a domain + tld
+							host = hostnameData.Domain + "." + hostnameData.Tld
+						}
+						hostSlice = append(hostSlice, host) // not an ipaddr
 					}
-					hostSlice = append(hostSlice, host)
 				}
 			}
 		}
@@ -156,13 +178,16 @@ func TokenizeHostString(data string) []string {
 			// Have valid tld
 			if strings.Contains(".", hoststring) { // we have a dot!
 				hostnameData,_ := ExtractTLDFromUrl(hoststring)
-				if hostnameData != nil { // we have a domain here...
-					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
-						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
-					} else { // we dont have a host part / subdomain, just a domain + tld
-						host = hostnameData.Domain + "." + hostnameData.Tld
+				if checkIPAddressType(hostnameData) == 0{ // not an ip address
+					if hostnameData != nil { // we have a domain here...
+						if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
+							host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+						} else { // we dont have a host part / subdomain, just a domain + tld
+							host = hostnameData.Domain + "." + hostnameData.Tld
+						}
+						hostSlice = append(hostSlice, host) // not an ipaddr
+						
 					}
-					hostSlice = append(hostSlice, host)
 				}
 			}
 		}
@@ -221,6 +246,7 @@ func ExtractHostsFromCert(data string) []string{
 	for _, element := range splited {
 		if len(element) > 2 && strings.Contains(element, "."){
 			hostdata,_ := ExtractTLDFromUrl(element)
+			if checkIPAddressType(hostdata) == 0{
 				if hostdata != nil{
 					if len(hostdata.Subdomain) > 0 {
 						host = hostdata.Subdomain + "." + hostdata.Domain + "." + hostdata.Tld
@@ -230,6 +256,7 @@ func ExtractHostsFromCert(data string) []string{
 					Slice = append(Slice, host)
 				}
 			}
+		}
 	}
 	uniqSlice := unique(Slice)
 	return uniqSlice
@@ -290,7 +317,6 @@ func main() {
 		for _, v := range hosts {
 			hsl = append(hsl,v)
 		}
-		
 	}
 
 	listofhosts := unique(hsl)
