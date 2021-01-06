@@ -161,6 +161,7 @@ func main() {
 		fmt.Println("Cert SubjectCN: ", jdata.CertificateChain[0].SubjectCN) 
 		
 		*/
+		
 		fmt.Println("Cert SubjectAltName: ", jdata.CertificateChain[0].SubjectAltName) 
 		
 		hosts := ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
