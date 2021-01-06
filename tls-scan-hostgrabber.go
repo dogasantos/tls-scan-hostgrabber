@@ -74,7 +74,7 @@ func SplitAltName(r rune) bool {
     return r == ':' || r == ','  || r == ' '
 }
 
-func ExtractHostsFromCertAltName(data string) []string{
+func ExtractHostsFromCertAltNameOld(data string) []string{
 	var Slice []string
 	var host string
 
@@ -97,6 +97,113 @@ func ExtractHostsFromCertAltName(data string) []string{
 	uniqSlice := unique(Slice)
 	return uniqSlice
 }
+
+func TokenizeHostString(data string) string{
+	var HostSlice []string
+	if strings.Contains(",", data) {
+		eachdnsfield := strings.Split(data, ",") 				// single DNS|URI:HOST per line
+		for _, element := range eachdnsfield { 					// element holds a single DNS:HOST entry
+			hstring := strings.Split(element, ":")[1]			// hstring holds a single HOST part
+			if strings.Contains("*.", hstring) { 
+				hstring2 := strings.Replace(hstring, "*.", "")	// we have a wildcard situation, then remove it
+			} else {
+				hstring2 := hstring								// dont need to remove anything
+			}
+			if strings.Contains("://", hstring2) { 					// we have a valid URI here, 
+				hoststring := strings.Split(hstring2, "://")[1]		// lets remove the protocol part
+			} else {
+				hoststring := hstring2								// dont need to remove anything
+			}
+
+
+			// validate the hoststring. It seems to be a real domain, tld etc?
+			// We'll consider a "real" host:
+			// Have at least 1 dot
+			// Have valid tld
+			if strings.Contains(".", hoststring) { // we have a dot!
+				hostnameData,_ := ExtractTLDFromUrl(hoststring)
+				if hostnameData != nil { // we have a domain here...
+					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
+						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+					} else { // we dont have a host part / subdomain, just a domain + tld
+						host = hostnameData.Domain + "." + hostnameData.Tld
+					}
+					Slice = append(Slice, host)
+				}
+			}
+		}
+	} else { 
+		// just one DNS: entry
+		singlednsfield := strings.Split(data, ":")
+		for _, element := range singlednsfield { 					// element holds a single DNS:HOST entry
+			hstring := strings.Split(element, ":")[1]			// hstring holds a single HOST part
+			if strings.Contains("*.", hstring) { 
+				hoststring := strings.Replace(hstring, "*.", "")	// we have a wildcard situation, then remove it
+			} else {
+				hoststring := hstring								// dont need to remove anything
+			}
+			// validate the hoststring. It seems to be a real domain, tld etc?
+			// We'll consider a "real" host:
+			// Have at least 1 dot
+			// Have valid tld
+			if strings.Contains(".", hoststring) { // we have a dot!
+				hostnameData,_ := ExtractTLDFromUrl(hoststring)
+				if hostnameData != nil { // we have a domain here...
+					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
+						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+					} else { // we dont have a host part / subdomain, just a domain + tld
+						host = hostnameData.Domain + "." + hostnameData.Tld
+					}
+					HostSlice = append(Slice, host)
+				}
+			}
+		}
+	}
+	uniqSlice := unique(Slice)
+	return uniqSlice
+}
+
+func ExtractHostsFromCertAltName(data string) []string{
+	var Slice []string
+	var host string
+	var hl []string 
+
+	if strings.Contains(" ", data) {
+		data_nospace := strings.Replace(data, " ", "")
+	} else {
+		data_nospace := data
+	}
+	// DNS:somehost (or N)
+	if strings.Contains("DNS:", data_nospace) {
+		// if we have DNS:host,DNS:host ...
+		hl = TokenizeHostString(data_nospace)
+		for _, element := range hl { 
+			Slice = append(element)
+		}
+	}
+	if strings.Contains("URI:", data_nospace) {
+		hl = TokenizeHostString(data_nospace)
+		for _, element := range hl { 
+			Slice = append(element)
+		}	
+	}
+
+	// ignore fields: 
+	// emails:
+	// IP Address:
+	// <EMPTY>
+	// othername:
+	// even if it has some new host...
+	// this might be something to improve in the near future
+	// for now.. it just doesnt seem to worth the effort
+
+	}
+
+
+	uniqSlice := unique(Slice)
+	return uniqSlice
+}
+
 
 
 func SplitCn(r rune) bool {
@@ -159,10 +266,10 @@ func main() {
 		fmt.Println("Cert Subject: ",jdata.CertificateChain[0].Subject) 
 		fmt.Println("Cert Issuer: ", jdata.CertificateChain[0].Issuer) 
 		fmt.Println("Cert SubjectCN: ", jdata.CertificateChain[0].SubjectCN) 
-		
-		*/
-		
 		fmt.Println("Cert SubjectAltName: ", jdata.CertificateChain[0].SubjectAltName) 
+
+		*/
+
 		
 		hosts := ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
 		for _, v := range hosts {
