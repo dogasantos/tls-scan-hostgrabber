@@ -40,21 +40,25 @@ func check(e error) {
 	}
 }
 
+
 func checkIPAddressType(ip string) int {
-	var retval int
-    if net.ParseIP(ip) == nil {
-        // fmt.Printf("Invalid IP Address: %s\n", ip)
+	var retval = 9
+
+	if net.ParseIP(ip) == nil {
+        //fmt.Printf("Invalid IP Address: %s\n", ip)
         retval = 0
-    }
-    for i := 0; i < len(ip); i++ {
-        switch ip[i] {
-        case '.':
-            // fmt.Printf("Given IP Address %s is IPV4 type\n", ip)
-            retval = 4
-        case ':':
-            // fmt.Printf("Given IP Address %s is IPV6 type\n", ip)
-            retval = 6
-        }
+	}
+	if retval == 9 {
+		for i := 0; i < len(ip); i++ {
+			switch ip[i] {
+			case '.':
+				//fmt.Printf("Given IP Address %s is IPV4 type\n", ip)
+				retval = 4
+			case ':':
+				fmt.Printf("Given IP Address %s is IPV6 type\n", ip)
+				//retval = 6
+			}
+		}
 	}
 	return retval
 }
