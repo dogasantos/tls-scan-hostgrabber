@@ -88,39 +88,13 @@ func unique(slice []string) []string {
     list := []string{}	
     for _, entry := range slice {
         if _, value := keys[entry]; !value {
-            keys[entry] = true
-            list = append(list, entry)
+			keys[entry] = true
+			if len(entry) > 2 {
+				list = append(list, entry)
+			}
         }
     }
     return list
-}
-
-func SplitAltName(r rune) bool {
-    return r == ':' || r == ','  || r == ' '
-}
-
-func ExtractHostsFromCertAltNameOld(data string) []string{
-	var Slice []string
-	var host string
-
-	ns := strings.Replace(data, "*.", "", -1)
-	splited := strings.FieldsFunc(ns, SplitAltName)
-
-	for _, element := range splited {
-		if len(element) > 2 && strings.Contains(element, "."){
-			hostdata,_ := ExtractTLDFromUrl(element)
-				if hostdata != nil{
-					if len(hostdata.Subdomain) > 0 {
-						host = hostdata.Subdomain + "." + hostdata.Domain + "." + hostdata.Tld
-					} else {
-						host = hostdata.Domain + "." + hostdata.Tld
-					}
-					Slice = append(Slice, host)
-				}
-			}
-	}
-	uniqSlice := unique(Slice)
-	return uniqSlice
 }
 
 func TokenizeHostString(data string) []string {
