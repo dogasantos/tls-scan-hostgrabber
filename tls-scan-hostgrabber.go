@@ -98,21 +98,29 @@ func ExtractHostsFromCertAltNameOld(data string) []string{
 	return uniqSlice
 }
 
-func TokenizeHostString(data string) string{
-	var HostSlice []string
+func TokenizeHostString(data string) []string {
+	var hostSlice []string
+	var ( 
+		hstring2 string
+		hoststring string
+		hstring string
+		host string
+	)
+
+
 	if strings.Contains(",", data) {
 		eachdnsfield := strings.Split(data, ",") 				// single DNS|URI:HOST per line
 		for _, element := range eachdnsfield { 					// element holds a single DNS:HOST entry
-			hstring := strings.Split(element, ":")[1]			// hstring holds a single HOST part
+			hstring = strings.Split(element, ":")[1]			// hstring holds a single HOST part
 			if strings.Contains("*.", hstring) { 
-				hstring2 := strings.Replace(hstring, "*.", "")	// we have a wildcard situation, then remove it
+				hstring = strings.Replace(hstring, "*.", "", -2)	// we have a wildcard situation, then remove it
 			} else {
-				hstring2 := hstring								// dont need to remove anything
+				hstring = hstring								// dont need to remove anything
 			}
 			if strings.Contains("://", hstring2) { 					// we have a valid URI here, 
-				hoststring := strings.Split(hstring2, "://")[1]		// lets remove the protocol part
+				hoststring = strings.Split(hstring2, "://")[1]		// lets remove the protocol part
 			} else {
-				hoststring := hstring2								// dont need to remove anything
+				hoststring = hstring2								// dont need to remove anything
 			}
 
 
@@ -128,7 +136,7 @@ func TokenizeHostString(data string) string{
 					} else { // we dont have a host part / subdomain, just a domain + tld
 						host = hostnameData.Domain + "." + hostnameData.Tld
 					}
-					Slice = append(Slice, host)
+					hostSlice = append(hostSlice, host)
 				}
 			}
 		}
@@ -138,9 +146,9 @@ func TokenizeHostString(data string) string{
 		for _, element := range singlednsfield { 					// element holds a single DNS:HOST entry
 			hstring := strings.Split(element, ":")[1]			// hstring holds a single HOST part
 			if strings.Contains("*.", hstring) { 
-				hoststring := strings.Replace(hstring, "*.", "")	// we have a wildcard situation, then remove it
+				hoststring = strings.Replace(hstring, "*.", "", -2)	// we have a wildcard situation, then remove it
 			} else {
-				hoststring := hstring								// dont need to remove anything
+				hoststring = hstring								// dont need to remove anything
 			}
 			// validate the hoststring. It seems to be a real domain, tld etc?
 			// We'll consider a "real" host:
@@ -154,38 +162,34 @@ func TokenizeHostString(data string) string{
 					} else { // we dont have a host part / subdomain, just a domain + tld
 						host = hostnameData.Domain + "." + hostnameData.Tld
 					}
-					HostSlice = append(Slice, host)
+					hostSlice = append(hostSlice, host)
 				}
 			}
 		}
 	}
-	uniqSlice := unique(Slice)
+	uniqSlice := unique(hostSlice)
 	return uniqSlice
 }
 
 func ExtractHostsFromCertAltName(data string) []string{
 	var Slice []string
-	var host string
 	var hl []string 
+	var data_nospace string
 
 	if strings.Contains(" ", data) {
-		data_nospace := strings.Replace(data, " ", "")
+		data_nospace = strings.ReplaceAll(data, " ", "")
 	} else {
-		data_nospace := data
+		data_nospace = data
 	}
 	// DNS:somehost (or N)
 	if strings.Contains("DNS:", data_nospace) {
 		// if we have DNS:host,DNS:host ...
 		hl = TokenizeHostString(data_nospace)
-		for _, element := range hl { 
-			Slice = append(element)
-		}
+		Slice = append(hl)
 	}
 	if strings.Contains("URI:", data_nospace) {
 		hl = TokenizeHostString(data_nospace)
-		for _, element := range hl { 
-			Slice = append(element)
-		}	
+		Slice = append(hl)
 	}
 
 	// ignore fields: 
@@ -196,9 +200,6 @@ func ExtractHostsFromCertAltName(data string) []string{
 	// even if it has some new host...
 	// this might be something to improve in the near future
 	// for now.. it just doesnt seem to worth the effort
-
-	}
-
 
 	uniqSlice := unique(Slice)
 	return uniqSlice
