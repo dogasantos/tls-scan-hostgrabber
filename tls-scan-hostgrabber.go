@@ -7,9 +7,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"regexp"
-	"strconv"
 	"strings"
-	tld "github.com/jpillora/go-tld"
+	"github.com/bobesa/go-domain-util/domainutil"
 )
 
 type CertChain struct {
@@ -23,8 +22,6 @@ type TldData struct {
 	Subdomain string
 	Domain string
 	Tld string
-	Port int 
-	Path string
 }
 
 type JsonStruct struct {
@@ -64,24 +61,20 @@ func checkIPAddressType(ip string) int {
 }
 
 
-func ExtractTLDFromUrl(url string) (*TldData, error){
+func ExtractTLDFromUrl(url string) (*TldData){
 	var d TldData
+	d.Subdomain = domainutil.Subdomain(url)
+	d.Domain = domainutil.Domain(url) 
+	d.Tld = domainutil.DomainSuffix(url)
 
-	u, err := tld.Parse("http://"+url) // because this lib parses URLs, the protocol portion is required... It's ugly, but it works
-
-	if u == nil {
-		return nil, err
-	}
-	
-	d.Subdomain = u.Subdomain
-	d.Domain = u.Domain
-	d.Tld = u.TLD
-	d.Port,_ = strconv.Atoi(u.Port)
-	d.Path = u.Path
-	return &d, err
+	/*
+	fmt.Printf("String:: %s\n", url )
+	fmt.Printf("\tsub: %s\n", domainutil.Subdomain(url) )
+	fmt.Printf("\tDomain: %s\n", domainutil.Domain(url) )
+	fmt.Printf("\tTld: %s\n", domainutil.DomainSuffix(url) )
+	*/
+	return &d
 }
-
-
 
 func unique(slice []string) []string {
     keys := make(map[string]bool)
@@ -100,40 +93,37 @@ func unique(slice []string) []string {
 func TokenizeHostString(data string) []string {
 	var hostSlice []string
 	var ( 
-		hstring2 string
 		hoststring string
 		hstring string
 		host string
 	)
 
-
 	if strings.Contains(",", data) {
 		eachdnsfield := strings.Split(data, ",") 				// single DNS|URI:HOST per line
 		for _, element := range eachdnsfield { 					// element holds a single DNS:HOST entry
 			hstring = strings.Split(element, ":")[1]			// hstring holds a single HOST part
-			if strings.Contains("*.", hstring) { 
-				hstring = strings.Replace(hstring, "*.", "", -2)	// we have a wildcard situation, then remove it
+			///if strings.Contains("*.", hstring) { 
+			///	hstring = strings.Replace(hstring, "*.", "", -2)	// we have a wildcard situation, then remove it
+			///} else {
+			///	hstring = hstring								// dont need to remove anything
+			///}
+			if strings.Contains("://", hstring) { 					// we have a valid URI here, 
+				hoststring = strings.Split(hstring, "://")[1]		// lets remove the protocol part
 			} else {
-				hstring = hstring								// dont need to remove anything
+				hoststring = hstring								// dont need to remove anything
 			}
-			if strings.Contains("://", hstring2) { 					// we have a valid URI here, 
-				hoststring = strings.Split(hstring2, "://")[1]		// lets remove the protocol part
-			} else {
-				hoststring = hstring2								// dont need to remove anything
-			}
-
 
 			// validate the hoststring. It seems to be a real domain, tld etc?
 			// We'll consider a "real" host:
 			// Have at least 1 dot
 			// Have valid tld
 			if strings.Contains(".", hoststring) { // we have a dot!
-				hostnameData,_ := ExtractTLDFromUrl(hoststring)
+				hostnameData := ExtractTLDFromUrl(hoststring)
 				if hostnameData != nil { // we have a domain here...
 					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
-						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+						host = hostnameData.Subdomain + "." + hostnameData.Domain //+ "." + hostnameData.Tld
 					} else { // we dont have a host part / subdomain, just a domain + tld
-						host = hostnameData.Domain + "." + hostnameData.Tld
+						host = hostnameData.Domain //+ "." + hostnameData.Tld
 					}
 					if checkIPAddressType(host) == 0{ // not an ip address
 						hostSlice = append(hostSlice, host) // not an ipaddr
@@ -157,12 +147,12 @@ func TokenizeHostString(data string) []string {
 			// Have at least 1 dot
 			// Have valid tld
 			if strings.Contains(".", hoststring) { // we have a dot!
-				hostnameData,_ := ExtractTLDFromUrl(hoststring)
+				hostnameData := ExtractTLDFromUrl(hoststring)
 				if hostnameData != nil { // we have a domain here...
 					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
-						host = hostnameData.Subdomain + "." + hostnameData.Domain + "." + hostnameData.Tld
+						host = hostnameData.Subdomain + "." + hostnameData.Domain //+ "." + hostnameData.Tld
 					} else { // we dont have a host part / subdomain, just a domain + tld
-						host = hostnameData.Domain + "." + hostnameData.Tld
+						host = hostnameData.Domain // + "." + hostnameData.Tld
 					}
 					if checkIPAddressType(host) == 0 { // not an ip address
 						hostSlice = append(hostSlice, host) // not an ipaddr
@@ -224,12 +214,12 @@ func ExtractHostsFromCert(data string) []string{
 
 	for _, element := range splited {
 		if len(element) > 2 && strings.Contains(element, "."){
-			hostdata,_ := ExtractTLDFromUrl(element)
+			hostdata := ExtractTLDFromUrl(element)
 			if hostdata != nil{
 				if len(hostdata.Subdomain) > 0 {
-					host = hostdata.Subdomain + "." + hostdata.Domain + "." + hostdata.Tld
+					host = hostdata.Subdomain + "." + hostdata.Domain // + "." + hostdata.Tld
 				} else {
-					host = hostdata.Domain + "." + hostdata.Tld
+					host = hostdata.Domain //+ "." + hostdata.Tld
 				}
 				if checkIPAddressType(host) == 0 { // not an ip address
 					Slice = append(Slice, host)
