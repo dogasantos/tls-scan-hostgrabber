@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"regexp"
 	"strings"
+	"unicode"
 	"github.com/bobesa/go-domain-util/domainutil"
 )
 
@@ -37,6 +38,15 @@ func check(e error) {
 	}
 }
 
+func HasWhiteSpace(value string) bool {
+	var retval = false
+    for _, v := range value {
+        if unicode.IsSpace(v) {
+            retval = true
+        }
+	}
+	return retval
+}
 
 func checkIPAddressType(ip string) int {
 	var retval = 9
@@ -97,12 +107,13 @@ func TokenizeHostString(data string) []string {
 		hstring string
 		host string
 	)
+	if strings.Contains(data,",") {
 
-	if strings.Contains(",", data) {
 		eachdnsfield := strings.Split(data, ",") 				// single DNS|URI:HOST per line
 		for _, element := range eachdnsfield { 					// element holds a single DNS:HOST entry
-			if strings.Contains(":", element) { 	 
+			if strings.Contains(element,":") { 	 
 				hstring = strings.Split(element, ":")[1]			// hstring holds a single HOST part
+				
 			} else {
 				hstring = element
 			}
@@ -111,7 +122,7 @@ func TokenizeHostString(data string) []string {
 			///} else {
 			///	hstring = hstring								// dont need to remove anything
 			///}
-			if strings.Contains("://", hstring) { 					// we have a valid URI here, 
+			if strings.Contains(hstring,"://") { 					// we have a valid URI here, 
 				hoststring = strings.Split(hstring, "://")[1]		// lets remove the protocol part
 			} else {
 				hoststring = hstring								// dont need to remove anything
@@ -121,7 +132,7 @@ func TokenizeHostString(data string) []string {
 			// We'll consider a "real" host:
 			// Have at least 1 dot
 			// Have valid tld
-			if strings.Contains(".", hoststring) { // we have a dot!
+			if strings.Contains(hoststring,".") { // we have a dot!
 				hostnameData := ExtractTLDFromUrl(hoststring)
 				if hostnameData != nil { // we have a domain here...
 					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
@@ -138,29 +149,20 @@ func TokenizeHostString(data string) []string {
 		}
 	} else { 
 		// just one DNS: entry
-		singlednsfield := strings.Split(data, ":")
-		for _, element := range singlednsfield { 					// element holds a single DNS:HOST entry
-			hstring := strings.Split(element, ":")[1]			// hstring holds a single HOST part
-			if strings.Contains("*.", hstring) { 
-				hoststring = strings.Replace(hstring, "*.", "", -2)	// we have a wildcard situation, then remove it
-			} else {
-				hoststring = hstring								// dont need to remove anything
-			}
-			// validate the hoststring. It seems to be a real domain, tld etc?
-			// We'll consider a "real" host:
-			// Have at least 1 dot
-			// Have valid tld
-			if strings.Contains(".", hoststring) { // we have a dot!
-				hostnameData := ExtractTLDFromUrl(hoststring)
-				if hostnameData != nil { // we have a domain here...
-					if len(hostnameData.Subdomain) > 0 { // we have a host part / subdomain
-						host = hostnameData.Subdomain + "." + hostnameData.Domain //+ "." + hostnameData.Tld
-					} else { // we dont have a host part / subdomain, just a domain + tld
-						host = hostnameData.Domain // + "." + hostnameData.Tld
+		singlednsfield := strings.Split(data, ":")[1]
+		if checkIPAddressType(singlednsfield) == 0 { 
+			if strings.Contains(singlednsfield,".") {
+				hostnameData := ExtractTLDFromUrl(singlednsfield)
+				if hostnameData != nil {
+					if len(hostnameData.Subdomain) > 0 {
+						host = hostnameData.Subdomain + "." + hostnameData.Domain
+					} else {
+						host = hostnameData.Domain
 					}
-					if checkIPAddressType(host) == 0 { // not an ip address
-						hostSlice = append(hostSlice, host) // not an ipaddr
-					}					
+				
+				//if checkIPAddressType(host) == 0 {
+				//	hostSlice = append(hostSlice, host) // not an ipaddr
+				//}					
 				}
 			}
 		}
@@ -173,19 +175,20 @@ func ExtractHostsFromCertAltName(data string) []string{
 	var Slice []string
 	var hl []string 
 	var data_nospace string
-
-	if strings.Contains(" ", data) {
+	
+	if HasWhiteSpace(data) {
 		data_nospace = strings.ReplaceAll(data, " ", "")
 	} else {
 		data_nospace = data
 	}
 	// DNS:somehost (or N)
-	if strings.Contains("DNS:", data_nospace) {
+	if strings.Contains(data_nospace,"DNS:") {
 		// if we have DNS:host,DNS:host ...
 		hl = TokenizeHostString(data_nospace)
 		Slice = append(hl)
 	}
-	if strings.Contains("URI:", data_nospace) {
+	if strings.Contains(data_nospace,"URI:") {
+
 		hl = TokenizeHostString(data_nospace)
 		Slice = append(hl)
 	}
@@ -287,10 +290,10 @@ func main() {
 			}
 		}
 	}
-
+	
 	listofhosts := unique(hsl)
 	for _, v := range listofhosts {
 		fmt.Println(v)
 	}
-
+	
 }
