@@ -101,7 +101,11 @@ func TokenizeHostString(data string) []string {
 	if strings.Contains(",", data) {
 		eachdnsfield := strings.Split(data, ",") 				// single DNS|URI:HOST per line
 		for _, element := range eachdnsfield { 					// element holds a single DNS:HOST entry
-			hstring = strings.Split(element, ":")[1]			// hstring holds a single HOST part
+			if strings.Contains(":", hstring) { 	 
+				hstring = strings.Split(element, ":")[1]			// hstring holds a single HOST part
+			} else {
+				hstring = element
+			}
 			///if strings.Contains("*.", hstring) { 
 			///	hstring = strings.Replace(hstring, "*.", "", -2)	// we have a wildcard situation, then remove it
 			///} else {
