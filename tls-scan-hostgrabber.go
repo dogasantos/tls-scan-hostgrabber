@@ -101,7 +101,7 @@ func TokenizeHostString(data string) []string {
 	if strings.Contains(",", data) {
 		eachdnsfield := strings.Split(data, ",") 				// single DNS|URI:HOST per line
 		for _, element := range eachdnsfield { 					// element holds a single DNS:HOST entry
-			if strings.Contains(":", hstring) { 	 
+			if strings.Contains(":", element) { 	 
 				hstring = strings.Split(element, ":")[1]			// hstring holds a single HOST part
 			} else {
 				hstring = element
@@ -250,6 +250,7 @@ func ExtractIpAddress(data string) ([]string) {
 func main() {
 	var jdata JsonStruct
 	var hsl []string
+	var hosts []string
 
 	jsonFile, err := os.Open("tls-scan.json")
 	check(err)
@@ -260,35 +261,30 @@ func main() {
 
 		err := json.Unmarshal([]byte(scanner.Text()), &jdata)
 		check(err)
-		/*
-		fmt.Println("Host: ", jdata.Host)
-		fmt.Println("IpAddress: ", jdata.Ip)
-		fmt.Println("Port: ",jdata.Port)
-		fmt.Println("Cert Subject: ",jdata.CertificateChain[0].Subject) 
-		fmt.Println("Cert Issuer: ", jdata.CertificateChain[0].Issuer) 
-		fmt.Println("Cert SubjectCN: ", jdata.CertificateChain[0].SubjectCN) 
-		fmt.Println("Cert SubjectAltName: ", jdata.CertificateChain[0].SubjectAltName) 
 
-		*/
-
-		
-		hosts := ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
-		for _, v := range hosts {
-			hsl = append(hsl,v)
+		if len(jdata.CertificateChain[0].Subject) > 2 {
+			hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
+			for _, v := range hosts {
+				hsl = append(hsl,v)
+			}
 		}
-
-		hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Issuer)
-		for _, v := range hosts {
-			hsl = append(hsl,v)
+		if len(jdata.CertificateChain[0].Issuer) > 2 {
+			hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Issuer)
+			for _, v := range hosts {
+				hsl = append(hsl,v)
+			}
 		}
-
-		hosts = ExtractHostsFromCert(jdata.CertificateChain[0].SubjectCN)
-		for _, v := range hosts {
-			hsl = append(hsl,v)
+		if len(jdata.CertificateChain[0].SubjectCN) > 2 {
+			hosts = ExtractHostsFromCert(jdata.CertificateChain[0].SubjectCN)
+			for _, v := range hosts {
+				hsl = append(hsl,v)
+			}
 		}
-		hosts = ExtractHostsFromCertAltName(jdata.CertificateChain[0].SubjectAltName)
-		for _, v := range hosts {
-			hsl = append(hsl,v)
+		if len(jdata.CertificateChain[0].SubjectAltName) > 2 {
+			hosts = ExtractHostsFromCertAltName(jdata.CertificateChain[0].SubjectAltName)
+			for _, v := range hosts {
+				hsl = append(hsl,v)
+			}
 		}
 	}
 
