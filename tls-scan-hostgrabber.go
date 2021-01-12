@@ -32,6 +32,13 @@ type JsonStruct struct {
 	CertificateChain []CertChain `json:"CertificateChain"`
 }
 
+type Options struct {
+	tlsScanReportFile		string
+	OutputFile        		string
+	Silent            		bool
+	Verbose           		bool
+}
+
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -71,18 +78,12 @@ func checkIPAddressType(ip string) int {
 }
 
 
-func ExtractTLDFromUrl(url string) (*TldData){
+func ExtractTLDFromUrl(url string) (*TldData) {
 	var d TldData
 	d.Subdomain = domainutil.Subdomain(url)
 	d.Domain = domainutil.Domain(url) 
 	d.Tld = domainutil.DomainSuffix(url)
 
-	/*
-	fmt.Printf("String:: %s\n", url )
-	fmt.Printf("\tsub: %s\n", domainutil.Subdomain(url) )
-	fmt.Printf("\tDomain: %s\n", domainutil.Domain(url) )
-	fmt.Printf("\tTld: %s\n", domainutil.DomainSuffix(url) )
-	*/
 	return &d
 }
 
@@ -112,6 +113,7 @@ func TokenizeHostString(data string) []string {
 		eachdnsfield := strings.Split(data, ",") 				// single DNS|URI:HOST per line
 		for _, element := range eachdnsfield { 					// element holds a single DNS:HOST entry
 			if strings.Contains(element,":") { 	 
+				//fmt.Println(element)
 				hstring = strings.Split(element, ":")[1]			// hstring holds a single HOST part
 				
 			} else {
