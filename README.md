@@ -7,7 +7,7 @@ tls-scan (https://github.com/prbinu/tls-scan) is a fantastic tool written by @pr
 
 # About tls-scan-hostgrabber
 
-I'm learning GO the hard way, which consist of taking my Python tools and port it to Go.
+I'm learning GO the hard way, which consist of taking my Python tools and port those to Golang.
 You can expect bad Go code that just works.
 
 With this in mind, in order to use tls-scan-hostgrabber, you must first run tls-scan and create a tls-scan.json file with the output of tls-scan tool (ndjson).
