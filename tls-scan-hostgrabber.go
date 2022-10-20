@@ -173,7 +173,7 @@ func TokenizeHostString(data string) []string {
 	uniqSlice := unique(hostSlice)
 	return uniqSlice
 }
-
+/*
 func ExtractHostsFromCertAltName(data string) []string{
 	var Slice []string
 	var hl []string 
@@ -188,7 +188,7 @@ func ExtractHostsFromCertAltName(data string) []string{
 	if strings.Contains(data_nospace,"DNS:") {
 		// if we have DNS:host,DNS:host ...
 		hl = TokenizeHostString(data_nospace)
-		Slice = append(Slice,hl)
+		Slice = append(Slice,hl[0])
 	}
 	if strings.Contains(data_nospace,"URI:") {
 
@@ -208,6 +208,42 @@ func ExtractHostsFromCertAltName(data string) []string{
 	uniqSlice := unique(Slice)
 	return uniqSlice
 }
+*/
+func ExtractHostsFromCertAltName(data string) []string{
+	var Slice []string
+	var hl []string 
+	var data_nospace string
+	
+	if HasWhiteSpace(data) {
+		data_nospace = strings.ReplaceAll(data, " ", "")
+	} else {
+		data_nospace = data
+	}
+	// DNS:somehost (or N)
+	if strings.Contains(data_nospace,"DNS:") {
+		// if we have DNS:host,DNS:host ...
+		hl = TokenizeHostString(data_nospace)
+		Slice = append(hl)
+	}
+	if strings.Contains(data_nospace,"URI:") {
+
+		hl = TokenizeHostString(data_nospace)
+		Slice = append(hl)
+	}
+
+	// ignore fields: 
+	// emails:
+	// IP Address:
+	// <EMPTY>
+	// othername:
+	// even if it has some new host...
+	// this might be something to improve in the near future
+	// for now.. it just doesnt seem to worth the effort
+
+	uniqSlice := unique(Slice)
+	return uniqSlice
+}
+
 
 
 
@@ -232,7 +268,7 @@ func ExtractHostsFromCert(data string) []string{
 					host = hostdata.Domain //+ "." + hostdata.Tld
 				}
 				if checkIPAddressType(host) == 0 { // not an ip address
-					Slice = append(Slice, strings.ToValidUTF8(host))
+					Slice = append(Slice, strings.ToValidUTF8(host,""))
 				}
 			}
 		}
@@ -264,7 +300,7 @@ func main() {
 
 	scanner := bufio.NewScanner(jsonFile)
 	for scanner.Scan() {
-		err := json.Unmarshal([]byte(scanner.Text()), &jdata)
+		err := json.Unmarshal([]byte(strings.ToValidUTF8(scanner.Text(),"")), &jdata)
 		check(err)
 
 		if len(jdata.CertificateChain[0].Subject) > 2 {
