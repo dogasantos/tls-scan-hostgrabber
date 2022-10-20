@@ -306,29 +306,30 @@ func main() {
 		//check(err)
 
 		json.Unmarshal([]byte(textdata), &jdata)
-
-		if len(jdata.CertificateChain[0].Subject) > 2 {
-			hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
-			for _, v := range hosts {
-				hsl = append(hsl,v)
+		if len(jdata.CertificateChain) > 1 { //no chain??
+			if len(jdata.CertificateChain[0].Subject) > 2 {
+				hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
+				for _, v := range hosts {
+					hsl = append(hsl,v)
+				}
 			}
-		}
-		if len(jdata.CertificateChain[0].Issuer) > 2 {
-			hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Issuer)
-			for _, v := range hosts {
-				hsl = append(hsl,v)
+			if len(jdata.CertificateChain[0].Issuer) > 2 {
+				hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Issuer)
+				for _, v := range hosts {
+					hsl = append(hsl,v)
+				}
 			}
-		}
-		if len(jdata.CertificateChain[0].SubjectCN) > 2 {
-			hosts = ExtractHostsFromCert(jdata.CertificateChain[0].SubjectCN)
-			for _, v := range hosts {
-				hsl = append(hsl,v)
+			if len(jdata.CertificateChain[0].SubjectCN) > 2 {
+				hosts = ExtractHostsFromCert(jdata.CertificateChain[0].SubjectCN)
+				for _, v := range hosts {
+					hsl = append(hsl,v)
+				}
 			}
-		}
-		if len(jdata.CertificateChain[0].SubjectAltName) > 2 {
-			hosts = ExtractHostsFromCertAltName(jdata.CertificateChain[0].SubjectAltName)
-			for _, v := range hosts {
-				hsl = append(hsl,v)
+			if len(jdata.CertificateChain[0].SubjectAltName) > 2 {
+				hosts = ExtractHostsFromCertAltName(jdata.CertificateChain[0].SubjectAltName)
+				for _, v := range hosts {
+					hsl = append(hsl,v)
+				}
 			}
 		}
 	}
