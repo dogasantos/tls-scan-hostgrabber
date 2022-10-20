@@ -302,8 +302,10 @@ func main() {
 	for scanner.Scan() {
 		textdata := strings.ToValidUTF8(scanner.Text(),"")
 
-		err := json.Unmarshal([]byte(textdata), &jdata)
-		check(err)
+		//err := json.Unmarshal([]byte(textdata), &jdata)
+		//check(err)
+
+		json.Unmarshal([]byte(textdata), &jdata)
 
 		if len(jdata.CertificateChain[0].Subject) > 2 {
 			hosts = ExtractHostsFromCert(jdata.CertificateChain[0].Subject)
