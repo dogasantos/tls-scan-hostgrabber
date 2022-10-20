@@ -300,7 +300,11 @@ func main() {
 
 	scanner := bufio.NewScanner(jsonFile)
 	for scanner.Scan() {
-		err := json.Unmarshal([]byte(strings.ToValidUTF8(scanner.Text(),"")), &jdata)
+		td := strings.ToValidUTF8(scanner.Text(),"")
+		td2 := strings.ReplaceAll(td, '\x01', "")
+		textdata := strings.ReplaceAll(td2, '\n', "")
+
+		err := json.Unmarshal([]byte(textdata), &jdata)
 		check(err)
 
 		if len(jdata.CertificateChain[0].Subject) > 2 {
