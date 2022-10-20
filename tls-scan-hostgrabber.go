@@ -1,14 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
-	"bufio"
-	"encoding/json"
 	"regexp"
 	"strings"
 	"unicode"
+
 	"github.com/bobesa/go-domain-util/domainutil"
 )
 
@@ -33,10 +34,10 @@ type JsonStruct struct {
 }
 
 type Options struct {
-	tlsScanReportFile		string
-	OutputFile        		string
-	Silent            		bool
-	Verbose           		bool
+	tlsScanFile		string
+	OutputFile		string
+	Silent			bool
+	Verbose			bool
 }
 
 func check(e error) {
@@ -187,12 +188,12 @@ func ExtractHostsFromCertAltName(data string) []string{
 	if strings.Contains(data_nospace,"DNS:") {
 		// if we have DNS:host,DNS:host ...
 		hl = TokenizeHostString(data_nospace)
-		Slice = append(hl)
+		Slice = append(Slice,hl)
 	}
 	if strings.Contains(data_nospace,"URI:") {
 
 		hl = TokenizeHostString(data_nospace)
-		Slice = append(hl)
+		Slice = append(Slice,hl)
 	}
 
 	// ignore fields: 
@@ -231,7 +232,7 @@ func ExtractHostsFromCert(data string) []string{
 					host = hostdata.Domain //+ "." + hostdata.Tld
 				}
 				if checkIPAddressType(host) == 0 { // not an ip address
-					Slice = append(Slice, host)
+					Slice = append(Slice, strings.ToValidUTF8(host))
 				}
 			}
 		}
@@ -263,7 +264,6 @@ func main() {
 
 	scanner := bufio.NewScanner(jsonFile)
 	for scanner.Scan() {
-
 		err := json.Unmarshal([]byte(scanner.Text()), &jdata)
 		check(err)
 
@@ -292,6 +292,8 @@ func main() {
 			}
 		}
 	}
+
+	//https://github.com/dogasantos/tls-scan-hostgrabber.git
 	
 	listofhosts := unique(hsl)
 	for _, v := range listofhosts {
