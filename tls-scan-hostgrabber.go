@@ -300,9 +300,7 @@ func main() {
 
 	scanner := bufio.NewScanner(jsonFile)
 	for scanner.Scan() {
-		td := strings.ToValidUTF8(scanner.Text(),"")
-		td2 := strings.ReplaceAll(td, '\x01', "")
-		textdata := strings.ReplaceAll(td2, '\n', "")
+		textdata := strings.ToValidUTF8(scanner.Text(),"")
 
 		err := json.Unmarshal([]byte(textdata), &jdata)
 		check(err)
